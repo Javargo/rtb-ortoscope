@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
+		<title>RTB Ortoscope on the Web</title>
+		<link rel="stylesheet" href="style.css">
+		<script src="TwoDGeometry.js" defer></script>
+		<script src="DxfLib.js" defer></script>
+		<script src="RtbData.js" defer></script>
+		<script src="ViewProperties.js" defer></script>
+		<script src="UI.js" defer></script>
+		<script src="main.js" defer></script>
+		<style>
+			
+		</style>
+	</head>
+	<body onload="bodyLoaded(event)" onresize="ui.resizePaintArea(event)">
+		<div style="display: grid; grid-template-rows: auto 1fr auto; height: 100vh;">
+			<div id="menu_bar" style="grid-row: 1; background-color: #aaffff">
+				<input id="dxf_file_hidden_input" type="file" style="display: none;" onchange="ui.loadDxfButtonCommand(event)"/>
+						<input id="dxf_file_button" type="button" value="Load DXF" style="" onclick="document.getElementById('dxf_file_hidden_input').click()"/>
+						<input id="scan_button" type="button" value="Scan RTB data" style="" onclick="ui.scanRtbButtonCommand()"/>
+						<input id="save_button" type="button" value="Save RTB data" style="" onclick="ui.saveRtbButtonCommand()"/>
+			
+			</div>
+			<div id="paint_div" style="grid-row: 2; overflow: hidden;">
+				<!--canvas id="paint_area" onwheel="ui.handleZoom(event);" onmousedown="ui.handleMouseDown(event);" onmouseup="ui.handleMouseUp(event);"-->
+				<canvas id="paint_area"></canvas>
+			</div>
+			<div id="bottom_bar" style="grid-row: 3; background-color: #aaffff">
+			</div>
+		</div>
+
+	</body>
+</html>

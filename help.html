@@ -1,0 +1,30 @@
+<html>
+<head>
+<meta charset="UTF-8"> 
+<title>RTB Ortoscope short help</title>
+</head>
+<body>
+<h2>Extract data for the RTB toolchain</h2>
+<p>Required layers an their content:</p>
+<dl>
+<dt>traeger</dt><dd>Beam points marked with text entries, containing the the appropriate beam point code (see below)</dd>
+<dt>beton</dt><dd>Contour points of the beton as point entries. The order of the points has to be continous.</dd>
+<dt>podest</dt><dd>Podest levels marked with points</dd>
+<dt>diverse</dt><dd>Lowest and highest concrete pressure point as point entry, number of beams as text as "T=60"</dd>
+</dl>
+<p>Beam point codes:</p>
+<dl>
+<dt>0</dt><dd>Pure geometry point</dd>
+<dt>1</dt><dd>Flexible joint with butt plates</dd>
+<dt>2</dt><dd>Compression member</dd>
+<dt>3</dt><dd>Tension member M30</dd>
+<dt>4</dt><dd>Tension member M20</dd>
+<dt>5</dt><dd>Form-giving ring rectangular hollow 80/80/5</dd>
+<dt>6</dt><dd>Form-giving ring rectangular hollow 100/100/5</dd>
+<dt>8</dt><dd>Rigid connection with butt plates</dd>
+<dt>9</dt><dd>Rigid connection with 3 axial screws</dd>
+</dl>
+<h2>Extract truss data</h2>
+<p>Use your favorite drafting software to visulally prepare the data. Create a layer named <b>nodes</b>. On this layer, mark the position of the nodes with a simple text entry. The insertion point of the text has to be identical with exact location of the node. Draw the middle axes of the rods on layer <b>rods</b>. The endpoints of each rod have to fit to one of the nodes. That means even long straight rods have to be interrupted at nodes.</p>  
+</body>
+</html>

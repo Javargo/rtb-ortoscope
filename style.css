@@ -1,0 +1,27 @@
+html
+{
+	min-height: 100vh;
+	height: 100vh;
+	padding: 0px;
+	margin: 0px;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	font-size: 12px;
+}
+
+body
+{
+	height: 100vh;
+	margin: 0px;
+	padding: 0px;
+}
+
+div
+{
+	margin: 0px;
+	padding: 0px;
+}
+
+input, select
+{
+	font-size: 12px;
+}
