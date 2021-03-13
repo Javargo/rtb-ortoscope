@@ -104,6 +104,7 @@ UI.prototype.scanRtbButtonCommand=function(e)
 
 UI.prototype.saveRtbButtonCommand=function(e)
 {
+	console.log("Save starts");
 	let serializer = new XMLSerializer();
 	let str="<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 	//str+="<?xml-stylesheet type=\"text/xsl\" href=\"subco_contract_template.xsl\"?>";
