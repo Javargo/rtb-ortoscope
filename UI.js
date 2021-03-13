@@ -4,6 +4,7 @@ function UI()
 	this.paintArea=document.getElementById("paint_area");
 	this.bottomBar=document.getElementById("bottom_bar");
 	this.drawings=[];
+	this.rtbData=null;
 	this.view=new ViewProperties();
 	this.panEventStarted=false;
 	this.mouseDownX=null;
@@ -96,11 +97,22 @@ UI.prototype.scanRtbButtonCommand=function(e)
 		let str=serializer.serializeToString(s.toXml());
 		console.log(str);*/
 		this.drawings.push(s);
+		this.rtbData=s;
 		this.renderAll();
 	}
 }
 
 UI.prototype.saveRtbButtonCommand=function(e)
 {
+	let serializer = new XMLSerializer();
+	let str="<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+	//str+="<?xml-stylesheet type=\"text/xsl\" href=\"subco_contract_template.xsl\"?>";
+	str+=serializer.serializeToString(this.rtbData.toXml());
+	let a=document.createElement("a");
+	a.href="data.xml?"+encodeURI(str);
+	a.download="data.xml"; //suggest a content specific name!
+	a.hidden=true;
+	document.body.appendChild(a);
+	a.click();
 }
 
