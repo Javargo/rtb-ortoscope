@@ -112,6 +112,7 @@ UI.prototype.saveRtbButtonCommand=function(e)
 	let a=document.createElement("a");
 	a.href="data.xml?"+encodeURI(str);
 	a.download="data.xml"; //suggest a content specific name!
+	a.target="_blank";
 	a.hidden=true;
 	document.body.appendChild(a);
 	a.click();
