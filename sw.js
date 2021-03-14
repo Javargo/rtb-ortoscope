@@ -18,12 +18,16 @@ self.addEventListener('install', function(e) {
 
 self.addEventListener('fetch', function(e)
 {
-  var saveURL="https://javargo.github.io/rtb-ortoscope/echo";
+ console.log("Fetch 1"); 
+ var saveURL="https://javargo.github.io/rtb-ortoscope/echo";
   if(e.request.url.search(saveURL)==0)
   {
     //console.log("Speciális ág");
     var right=e.request.url.substring(saveURL.length+1);
-   e.respondWith(new Response(new Blob([decodeURI(right)], {type : 'application/xml'}), {status: 200, readyState: 4, headers: {'Content-Type': 'application/xml'}}));   
+   const newHeaders = new Headers();
+   newHeaders.append('Content-Type', 'application/xml');
+   newHeaders.append('Content-Disposition', 'attachment');
+   e.respondWith(new Response(new Blob([decodeURI(right)], {type : 'application/xml'}), {status: 200, readyState: 4, headers: newHeaders}));   
   }
   else
   {
