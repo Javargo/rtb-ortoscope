@@ -18,13 +18,12 @@ self.addEventListener('install', function(e) {
 
 self.addEventListener('fetch', function(e)
 {
-  var saveURL="https://javargo.github.io/rtb-ortoview/data.xml";
+  var saveURL="https://javargo.github.io/rtb-ortoscope/echo";
   if(e.request.url.search(saveURL)==0)
   {
     //console.log("Speciális ág");
-    var rest=e.request.url.substring(saveURL.length+1);
-    //console.log("rest: "+rest);
-   e.respondWith(new Response(new Blob([decodeURI(rest)], {type : 'application/xml'}), {status: 200, readyState: 4}));   
+    var right=e.request.url.substring(saveURL.length+1);
+   e.respondWith(new Response(new Blob([decodeURI(right)], {type : 'application/xml'}), {status: 200, readyState: 4}));   
   }
   else
   {
