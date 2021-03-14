@@ -1,6 +1,6 @@
 {
-	"name": "RTB Ortoview Web App",
-	"short_name": "rtb-ortoview",
+	"name": "RTB Ortoscope Web App",
+	"short_name": "rtb-ortoscope",
 	"description": "Extracts RTB data from DXF files",
 	"icons": [
 		{
