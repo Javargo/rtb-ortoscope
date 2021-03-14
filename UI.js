@@ -110,7 +110,7 @@ UI.prototype.saveRtbButtonCommand=function(e)
 	//str+="<?xml-stylesheet type=\"text/xsl\" href=\"subco_contract_template.xsl\"?>";
 	str+=serializer.serializeToString(this.rtbData.toXml());
 	let a=document.createElement("a");
-	a.href="data.xml?"+encodeURI(str);
+	a.href="echo?"+encodeURI(str);
 	a.download="data.xml"; //suggest a content specific name!
 	a.target="_blank";
 	a.hidden=true;
