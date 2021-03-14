@@ -23,7 +23,7 @@ self.addEventListener('fetch', function(e)
   {
     //console.log("Speciális ág");
     var right=e.request.url.substring(saveURL.length+1);
-   e.respondWith(new Response(new Blob([decodeURI(right)], {type : 'application/xml'}), {status: 200, readyState: 4}));   
+   e.respondWith(new Response(new Blob([decodeURI(right)], {type : 'application/xml'}), {status: 200, readyState: 4, headers: {'Content-Type': 'application/xml'}}));   
   }
   else
   {
