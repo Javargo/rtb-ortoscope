@@ -1,3 +1,5 @@
+console.log("UI 1");
+
 function UI()
 {
 	this.paintDiv=document.getElementById("paint_div");
