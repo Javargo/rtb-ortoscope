@@ -18,7 +18,7 @@ self.addEventListener('install', function(e) {
 
 self.addEventListener('fetch', function(e)
 {
- console.log("Fetch 2"); 
+ console.log("Fetch 3"); 
  console.log(e.request.headers);
  const saveURL="https://javargo.github.io/rtb-ortoscope/echo";
   if(e.request.url.search(saveURL)==0)
@@ -27,7 +27,7 @@ self.addEventListener('fetch', function(e)
    const right=e.request.url.substring(saveURL.length+1);
    const newHeaders = new Headers();
    newHeaders.append('Content-Type', 'application/xml');
-   newHeaders.append('Content-Disposition', 'attachment');
+   newHeaders.append('Content-Disposition', 'attachment; filename="data.xml"');
    e.respondWith(new Response(new Blob([decodeURI(right)], {type : 'application/xml'}), {status: 200, readyState: 4, headers: newHeaders}));   
   }
   else
