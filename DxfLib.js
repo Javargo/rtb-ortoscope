@@ -308,6 +308,12 @@ DxfEntitiesSection.prototype.processGroup=function(g)
 				this.objects.push(x);
 				return x;
 			}
+			if(g.value=="LWPOLYLINE")
+			{
+				let x=new DxfLwpolyline(this);
+				this.objects.push(x);
+				return x;
+			}
 			return this;
 		default:
 			this.numberOfUnprocessedGroups++;
@@ -1118,6 +1124,120 @@ DxfBlock.prototype.toString=function()
 	for(let i=0; i<this.objects.length; i++)
 	{
 		str+=this.objects[i].toString();
+	}
+	return str;
+};
+
+//===============================================
+// DxfLwpolyline
+//===============================================
+
+function DxfLwpolyline(p)
+{
+	this.parent=p;
+	this.layer="";
+	this.handle="";
+	this.type="LWPOLYLINE";
+	this.announcedNumberOfVertices;
+	this.polylineFlag=0; //0: open; 1: closed;
+	this.x=[];
+	this.y=[];
+	this.numberOfUnprocessedGroups=0;
+	return this;
+};
+
+//------------------------------------------------
+
+DxfLwpolyline.prototype.processGroup=function(g)
+{
+	switch(g.code)
+	{
+		case 0:
+			return this.parent.processGroup(g);
+		case 5:
+			this.handle=g.value;
+			return this;
+		case 8:
+			this.layer=g.value;
+			return this;	
+		case 10:
+			this.x.push(parseFloat(g.value));
+			return this;
+		case 20:
+			this.y.push(parseFloat(g.value));
+			return this;
+		case 70:
+			this.polylineFlag=parseInt(g.value);
+			return this;
+		case 90:
+			this.announcedNumberOfVertices=parseInt(g.value);
+			return this;
+		default:
+			this.numberOfUnprocessedGroups++;
+			return this;
+	}
+};
+
+//------------------------------------------------
+
+DxfLwpolyline.prototype.render=function(c, view)
+{
+	let n=Math.min(this.x.length, this.y.length);
+	c.beginPath();
+	c.strokeStyle = "black";
+	if(n>0)
+	{
+		c.moveTo(this.x[0], this.y[0]);
+	}
+	for(let i=1; i<n; i++)
+	{
+		c.lineTo(this.x[i], this.y[i]);
+	}
+	if(this.polylineFlag>0)
+	{
+		c.closePath();
+	}
+	c.stroke();
+};
+
+//------------------------------------------------
+
+DxfLwpolyline.prototype.getBoundingBox=function()
+{
+	let bb=new TwoDGeometry.BoundingBox(new TwoDGeometry.Vector(this.x[0], this.y[0]));
+	let n=Math.min(this.x.length, this.y.length);
+	for(let i=1; i<n; i++)
+	{
+		bb.plusThis(new TwoDGeometry.BoundingBox(new TwoDGeometry.Vector(this.x[i], this.y[i])));
+	}
+	return bb;
+};
+
+//------------------------------------------------
+
+DxfLwpolyline.prototype.getGeometryRepresentation=function()
+{
+	let poly=new TwoDGeometry.Polygon();
+	let n=Math.min(this.x.length, this.y.length);
+	for(let i=0; i<n; i++)
+	{
+		poly.addVertex(new TwoDGeometry.Vector(this.x[i], this.y[i]));
+	}
+	return poly;
+};
+
+//------------------------------------------------
+
+DxfLwpolyline.prototype.toString=function()
+{
+	let n=Math.min(this.x.length, this.y.length);
+	let str="    Lwpolyline\n";
+	str+="      number of unprocessed groups = "+this.numberOfUnprocessedGroups+"\n";
+	str+="      layer = "+this.layer+"\n";
+	for(let i=1; i<n; i++)
+	{
+		str+="      x = "+this.x[i]+"\n";
+		str+="      y = "+this.y[i]+"\n";
 	}
 	return str;
 };

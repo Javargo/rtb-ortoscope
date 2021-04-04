@@ -89,12 +89,27 @@ UI.prototype.loadDxfButtonCommand=function(e)
 	this.bottomBar.textContent=e.target.files[0].name;
 }
 
+UI.prototype.loadDxfButtonCommand2=function(e)
+{
+	const pickerOpts = {
+		types: [
+			{
+				description: 'Images',
+				accept: {'image/*': ['.png', '.gif', '.jpeg', '.jpg']}
+			}
+		],
+		excludeAcceptAllOption: false,
+  		multiple: false
+	};
+	window.showOpenFilePicker(pickerOpts);
+}
+
 UI.prototype.scanRtbButtonCommand=function(e)
 {
 	if(this.drawings.length>0)
 	{
 		let s=new RtbData();
-		s.extractFrom(this.drawings[0]);
+		s.extractWithPolygonFrom(this.drawings[0]);
 		/*let serializer=new XMLSerializer();
 		let str=serializer.serializeToString(s.toXml());
 		console.log(str);*/

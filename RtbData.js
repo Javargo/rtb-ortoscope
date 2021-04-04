@@ -22,7 +22,7 @@
 
 function RtbData()
 {
-	//this.fileNameTrunk="";
+	this.fileNameTrunk="";
 	this.beamPoints=[];
 	this.contourPoints=[];
 	this.podestLevels=[];
@@ -107,6 +107,9 @@ RtbData.prototype.render=function(c, view)
 
 //....................................................................................................
 
+//This is very classic extractor
+//The beam axis will be determined by the insertion points of the text entities.
+//Even points with code >1 will be used for beam axis definition
 RtbData.prototype.extractFrom=function(drawing)
 {
 	let collectedBeamPoints=[];
@@ -269,7 +272,13 @@ RtbData.prototype.extractFrom=function(drawing)
 	this.lowerConcreteLevel=collectedSectionLevels[0];
 	this.upperConcreteLevel=collectedSectionLevels[collectedSectionLevels.length-1];
 };
+
 //....................................................................................................
+
+//This a somewhat advanced extractor.
+//The beam axis will be constructed from points with code <10.
+//Points with code 12, 13, 14, 15 will be projected on the axis horizontally.
+//On long beam sections intermediate points will be inserted
 RtbData.prototype.extractWithProjectionFrom=function(drawing)
 {
 	//a geometriai pontokat és az egyebeket külön kell szedni,
@@ -552,6 +561,228 @@ RtbData.prototype.extractWithProjectionFrom=function(drawing)
 			}
 
 		}
+	}
+	
+	this.podestLevels.sort(function(a, b){return a - b;});
+	collectedSectionLevels.sort(function(a, b){return a - b;});
+	this.lowerConcreteLevel=collectedSectionLevels[0];
+	this.upperConcreteLevel=collectedSectionLevels[collectedSectionLevels.length-1];
+};
+
+//....................................................................................................
+
+//Extractor using polylines
+//The beam axis is defined by an polyline (LWPOLYLINE) on the layer "traeger"
+//The polyline has to start at the lower end of the beam
+//Points with code 1, 2, 3, 4, 5 will be projected on the axis horizontally.
+//Close geometry points will be removed
+//On long beam sections intermediate points will be inserted
+//The concrete contour is defined also as a polyline
+RtbData.prototype.extractWithPolygonFrom=function(drawing)
+{
+	//layer names
+	const beamLayer="traeger";
+	const concreteContourLayer="beton";
+	const platformLevelsLayer="podeste";
+	const miscellaneosDataLayer="diverse";
+	
+	let collectedBeamPolygons=[];
+	let collectedConcreteContourPolygons=[];
+	let collectedMarkerPoints=[]; //az összes többi
+	let collectedPodestLevels=[];
+	let collectedSectionLevels=[];
+	//does not search in blocks
+	for(let i=0; i<drawing.entities.objects.length; i++)
+	{
+		let x=drawing.entities.objects[i];
+		switch(x.layer.toLowerCase())
+		{
+			case beamLayer:
+				if(x.type=="TEXT")
+				{
+					collectedMarkerPoints.push(x);
+				}
+				else if(x.type=="LWPOLYLINE")
+				{
+					collectedBeamPolygons.push(x);
+				}
+				break;
+			case concreteContourLayer:
+				if(x.type=="LWPOLYLINE")
+				{
+					collectedConcreteContourPolygons.push(x);
+				}
+				break;
+			case platformLevelsLayer:
+				if(x.type=="POINT")
+				{
+					this.podestLevels.push(x.y);
+				}
+				break;
+			case miscellaneosDataLayer:
+				if(x.type=="TEXT")
+				{
+					if(x.text.startsWith("T="))
+					{
+						this.teilung=parseInt(x.text.substr(2));
+					}
+				}
+				if(x.type=="POINT")
+				{
+					collectedSectionLevels.push(x.y);
+				}
+				break;
+			default:
+		}
+	}
+	//warnings
+	if(collectedBeamPolygons.length==0) console.log("Warning: No beam axis polygon found!\n");
+	if(collectedBeamPolygons.length>1) console.log("Warning: More then one beam axis polygon found!\n");
+	if(collectedMarkerPoints.length==0) console.log("Warning: No rings found!\n");
+	if(collectedConcreteContourPolygons.length==0) console.log("Warning: No concrete contour polygon found!\n");
+	if(collectedConcreteContourPolygons.length>1) console.log("Warning: More then one concrete contour polygon found!\n");
+	if(this.podestLevels.length==0) console.log("Warning: No podest levels found!\n");
+	if(collectedSectionLevels.length==0) console.log("Warning: No concreting section limits found!\n");
+	if(collectedSectionLevels.length==1) console.log("Warning: Only one concreting section limits found! (Two required)\n");
+	if(collectedSectionLevels.length>2) console.log("Warning: Two much concreting section limits found! ("+collectedSectionLevels.length+" instead of two)\n");
+	if(this.teilung==null || this.teilung==Math.NaN) console.log("Warning: No beam number information (Teilung) found!\n");
+
+	//Add polygon point to beam points list
+	let n=Math.min(collectedBeamPolygons[0].x.length, collectedBeamPolygons[0].y.length);
+	for(let i=0; i<n; i++)
+	{
+		let x=new TwoDGeometry.Vector(Math.abs(collectedBeamPolygons[0].x[i]), collectedBeamPolygons[0].y[i]);
+		x.type=0;
+		this.beamPoints.push(x);
+	}
+	//rávetítem a marker pontokat a tartó geometriára
+	for(let i=0; i<collectedMarkerPoints.length; i++)
+	{
+		for(let j=0; j<this.beamPoints.length-1; j++)
+		{
+			if(this.beamPoints[j].y==collectedMarkerPoints[i].y)
+			{
+				if(this.beamPoint[j].type==0)
+				{
+					let x=new TwoDGeometry.Vector(Math.abs(collectedMarkerPoints[i].x), collectedMarkerPoints[i].y);
+					let t=parseInt(collectedMarkerPoints[i].text);
+					x.type=(t<10?t:(t-10));
+					this.beamPoints.splice(j, 1, x);
+					break;
+				}
+				else
+				{
+					throw("Beam point conflict at projection!");
+				}
+			}
+			if(this.beamPoints[j].y<collectedMarkerPoints[i].y && this.beamPoints[j+1].y>collectedMarkerPoints[i].y)
+			{
+				let xx=Math.abs(this.beamPoints[j].x)+(this.beamPoints[j+1].x-this.beamPoints[j].x)/(this.beamPoints[j+1].y-this.beamPoints[j].y)*(collectedMarkerPoints[i].y-this.beamPoints[j].y);
+				let x=new TwoDGeometry.Vector(xx, collectedMarkerPoints[i].y);
+				let t=parseInt(collectedMarkerPoints[i].text);
+				x.type=(t<10?t:(t-10));
+				this.beamPoints.splice(j+1, 0, x);
+				break;
+			}
+		}
+		if(this.beamPoints[this.beamPoints.length-1].y==collectedMarkerPoints[i].y)
+		{
+			if(this.beamPoints[this.beamPoints.length-1].type==0)
+			{
+				let x=new TwoDGeometry.Vector(Math.abs(collectedMarkerPoints[i].x), collectedMarkerPoints[i].y);
+				let t=parseInt(collectedMarkerPoints[i].text);
+				x.type=(t<10?t:(t-10));
+				this.beamPoints.splice(this.beamPoints.length-1, 1, x);
+				break;
+			}
+			else
+			{
+				throw("Beam point conflict at projection!");
+			}
+		}
+	}
+	
+	//pontok besűrítése
+	//legnagyobb megengedett távolság
+	let maxDistanceAllowed=500;
+	let newBeamPoints=[];
+	//végig megyek a szakaszokon
+	//kicsit kakás, mert a this.beamPoint hosszát változtatom azzal, hogy újabb pontokat szúrok be
+	for(let i=0; i<this.beamPoints.length-1; i++)
+	{
+		newBeamPoints.push(this.beamPoints[i]);
+		//az aktuális pont távolsága a következőtől
+		let distance=this.beamPoints[i].distance(this.beamPoints[i+1]);
+		if(distance>maxDistanceAllowed)
+		{
+			//ennyi részre kell felosztani a szakaszt
+			let k=Math.ceil(distance/maxDistanceAllowed);
+			let dx=(this.beamPoints[i+1].x-this.beamPoints[i].x)/k;
+			let dy=(this.beamPoints[i+1].y-this.beamPoints[i].y)/k;
+			//beszúrjuk az új pontokat
+			for(let j=1; j<k; j++)
+			{
+				let x=new TwoDGeometry.Vector(this.beamPoints[i].x+j*dx, this.beamPoints[i].y+j*dy);
+				x.type=0;
+				newBeamPoints.push(x);
+			}
+		}
+	}
+	newBeamPoints.push(this.beamPoints[this.beamPoints.length-1]);
+	this.beamPoints=newBeamPoints;
+	
+	//közeli pontok eltávolítása
+	let minDistanceAllowed=40;
+	for(let i=0; i<this.beamPoints.length-1; i++)
+	{
+		//az aktuális pont távolsága a következőtől
+		let distance=this.beamPoints[i].distance(this.beamPoints[i+1]);
+		if(distance<minDistanceAllowed)
+		{
+			let isLowerPointImportant=(this.beamPoints[i].type>0 || i==0);
+			let isUpperPointImportant=(this.beamPoints[i+1].type>0 || i==this.beamPoints.length-1);
+			if(isLowerPointImportant)
+			{
+				if(isUpperPointImportant)
+				//mindkét pontot meg kell tartani
+				{
+					console.log("Points "+i+" and "+(i+1)+" are too near to each other, but none of them can be removed!\n");
+				}
+				else
+				//a felső pont kidobható
+				{
+					this.beamPoints.splice(i+1, 1);
+					//console.log("Point "+(i+1)+" removed.\n");
+					i--;
+				}
+			}
+			else
+			{
+				if(isUpperPointImportant)
+				//az alsó pont kidobható
+				{
+					this.beamPoints.splice(i, 1);
+					//console.log("Point "+i+" removed.\n");
+					i--;
+				}
+				else
+				//bármelyik kidobható, kérdés, hogy melyik legyen az
+				{
+					this.beamPoints.splice(i, 1);
+					//console.log("Point "+i+" removed.\n");
+					i--;
+				}
+			}
+
+		}
+	}
+	
+	n=Math.min(collectedConcreteContourPolygons[0].x.length, collectedConcreteContourPolygons[0].y.length);
+	for(let i=0; i<collectedConcreteContourPolygons[0].length; i++)
+	{
+		collectedConcreteContourPolygons.push(x);
+		let point=new TwoDGeometry.Vector(Math.abs(collectedConcreteContourPolygons[0].x[i]), ollectedConcreteContourPolygons[0].y[i]);
+		this.contourPoints.push(point);
 	}
 	
 	this.podestLevels.sort(function(a, b){return a - b;});
