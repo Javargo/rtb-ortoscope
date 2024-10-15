@@ -135,3 +135,12 @@ UI.prototype.saveRtbButtonCommand=function(e)
 	a.click();
 }
 
+UI.prototype.zoomAllButtonCommand=function(e)
+{
+	if(this.drawings.length>0)
+	{
+		this.view.centerDrawingOnCanvas(this.drawings[0], this.paintArea);
+		this.renderAll();
+	}
+}
+
