@@ -1,4 +1,4 @@
-console.log("UI 1");
+console.log("UI update code: 2");
 
 function UI()
 {
